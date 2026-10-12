@@ -1,6 +1,12 @@
 # Microservicio: `rutas-ms`
 
-Microservicio independiente desarrollado con **Spring Boot**, **Spring Data JPA** y **PostgreSQL**, encargado de la gestión integral de **rutas de recolección** y sus correspondientes **paradas**.
+Microservicio de rutas del caso **RutaLimpia** (servicio de recolección de reciclaje a domicilio), desarrollado con **Spring Boot**, **Spring Data JPA** y **PostgreSQL**.
+
+En el sistema RutaLimpia, cada **ruta** representa la hoja de ruta asignada a un camión, y sus **paradas** son los retiros programados que debe efectuar el conductor. El conductor consulta las paradas asignadas a su camión y registra si cada retiro fue realizado o falló.
+
+Los datos de camiones y solicitudes provienen de otros microservicios con sus propias bases de datos:
+- `camionId`: hace referencia al camión en el microservicio de **Flota**.
+- `solicitudId`: hace referencia a la solicitud de retiro en el microservicio de **Solicitudes**.
 
 Desarrollado en el contexto de la **Evaluación Parcial 2** de la asignatura **Java: Diseño y Construcción de Soluciones Nativas en Nube (JVY0101)**.
 
@@ -106,24 +112,27 @@ El microservicio corre en el puerto **`8082`**. Puedes iniciarlo mediante cualqu
 
 | Método | Ruta | Descripción | Respuestas HTTP |
 |---|---|---|---|
-| `POST` | `/rutas` | Registra una nueva ruta de recolección | `201 Created` con la ruta guardada<br>`400 Bad Request` si el nombre es nulo o vacío |
+| `POST` | `/rutas` | Registra una nueva hoja de ruta asociada a un camión | `201 Created` con la ruta guardada<br>`400 Bad Request` si el nombre viene nulo/vacío o si `camionId` viene nulo |
 | `GET` | `/rutas` | Lista todas las rutas registradas | `200 OK` con listado de rutas |
 | `GET` | `/rutas/{id}` | Busca una ruta por su ID | `200 OK` con la ruta<br>`404 Not Found` si no existe |
-| `PUT` | `/rutas/{id}` | Actualiza los datos de una ruta | `200 OK` con la ruta actualizada<br>`404 Not Found` si no existe |
+| `PUT` | `/rutas/{id}` | Actualiza los datos de una ruta (nombre, sector, día, estado y camión) | `200 OK` con la ruta actualizada<br>`404 Not Found` si no existe |
 | `DELETE` | `/rutas/{id}` | Elimina una ruta por su ID | `204 No Content` si se eliminó<br>`404 Not Found` si no existe |
 | `GET` | `/rutas/sector/{sector}` | Consulta rutas por sector geográfico | `200 OK` con las rutas coincidentes |
 | `GET` | `/rutas/estado/{estado}` | Consulta rutas por estado (`ACTIVA`/`INACTIVA`) | `200 OK` con las rutas coincidentes |
+| `GET` | `/rutas/camion/{camionId}` | Consulta las hojas de ruta asignadas a un camión | `200 OK` con las rutas del camión |
 
 ### Endpoints de Paradas (`/paradas`)
 
 | Método | Ruta | Descripción | Respuestas HTTP |
 |---|---|---|---|
-| `POST` | `/paradas/ruta/{rutaId}` | Crea una parada asociada a una ruta | `201 Created` con la parada creada<br>`400 Bad Request` si la dirección es nula/vacía<br>`404 Not Found` si la ruta no existe |
+| `POST` | `/paradas/ruta/{rutaId}` | Crea una parada de retiro asociada a una ruta | `201 Created` con la parada creada<br>`400 Bad Request` si la dirección viene nula/vacía o si `solicitudId` viene nulo<br>`404 Not Found` si la ruta no existe |
 | `GET` | `/paradas` | Lista todas las paradas | `200 OK` con listado de paradas |
 | `GET` | `/paradas/{id}` | Busca una parada por su ID | `200 OK` con la parada<br>`404 Not Found` si no existe |
 | `PUT` | `/paradas/{id}` | Actualiza datos de la parada (dirección, orden, observación) | `200 OK` con la parada actualizada<br>`404 Not Found` si no existe |
 | `DELETE` | `/paradas/{id}` | Elimina una parada por su ID | `204 No Content` si se eliminó<br>`404 Not Found` si no existe |
 | `GET` | `/paradas/ruta/{rutaId}` | Obtiene las paradas de una ruta ordenadas por posición | `200 OK` con la lista de paradas ordenada |
+| `GET` | `/paradas/camion/{camionId}` | Consulta las paradas asignadas a un camión ordenadas por orden ascendente | `200 OK` con las paradas del camión |
+| `PUT` | `/paradas/{id}/resultado` | Registra el resultado del retiro por parte del conductor (`REALIZADA` o `FALLIDA`) | `200 OK` con la parada actualizada<br>`400 Bad Request` si el estado no es `REALIZADA` o `FALLIDA`<br>`404 Not Found` si la parada no existe |
 
 ---
 
@@ -136,10 +145,10 @@ El microservicio corre en el puerto **`8082`**. Puedes iniciarlo mediante cualqu
 
 ```json
 {
-  "nombre": "Ruta Centro Residencial",
-  "sector": "Centro",
+  "nombre": "Ruta Norte 1",
+  "sector": "Sector Norte",
   "diaRecoleccion": "LUNES",
-  "estado": "ACTIVA"
+  "camionId": 1
 }
 ```
 
@@ -152,9 +161,24 @@ El microservicio corre en el puerto **`8082`**. Puedes iniciarlo mediante cualqu
 
 ```json
 {
-  "direccion": "Av. Libertador Bernardo O'Higgins 1234",
+  "direccion": "Av. Principal 123",
   "orden": 1,
-  "observacion": "Contenedor verde frente al acceso principal"
+  "observacion": "Frente a la plaza",
+  "solicitudId": 1
+}
+```
+
+*Nota: Si el campo `estado` se omite o viene vacío al crear la parada, se asignará `"PENDIENTE"` de forma predeterminada.*
+
+### 7.3. Registrar Resultado de Retiro
+
+**Solicitud:** `PUT /paradas/1/resultado`  
+**Headers:** `Content-Type: application/json`
+
+```json
+{
+  "estado": "REALIZADA",
+  "observacion": "Retiro completado"
 }
 ```
 
