@@ -11,6 +11,9 @@ import jakarta.persistence.Table;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Entidad que representa una hoja de ruta de recolección para un camión en RutaLimpia.
+ */
 @Entity
 @Table(name = "rutas")
 public class Ruta {
@@ -27,18 +30,22 @@ public class Ruta {
 
     private String estado;
 
+    private Long camionId;
+
     @OneToMany(mappedBy = "ruta", cascade = CascadeType.ALL)
     @JsonIgnore
     private List<Parada> paradas = new ArrayList<>();
 
+    /** Constructor vacío requerido por JPA. */
     public Ruta() {
     }
 
-    public Ruta(String nombre, String sector, String diaRecoleccion, String estado) {
+    /** Constructor con campos para la creación de una ruta asociada a un camión. */
+    public Ruta(String nombre, String sector, String diaRecoleccion, Long camionId) {
         this.nombre = nombre;
         this.sector = sector;
         this.diaRecoleccion = diaRecoleccion;
-        this.estado = estado;
+        this.camionId = camionId;
     }
 
     public Long getId() {
@@ -79,6 +86,14 @@ public class Ruta {
 
     public void setEstado(String estado) {
         this.estado = estado;
+    }
+
+    public Long getCamionId() {
+        return camionId;
+    }
+
+    public void setCamionId(Long camionId) {
+        this.camionId = camionId;
     }
 
     public List<Parada> getParadas() {
