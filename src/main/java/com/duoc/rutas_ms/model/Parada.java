@@ -8,6 +8,9 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
+/**
+ * Entidad que representa una parada de retiro asignada dentro de una ruta.
+ */
 @Entity
 @Table(name = "paradas")
 public class Parada {
@@ -22,17 +25,24 @@ public class Parada {
 
     private String observacion;
 
+    private String estado;
+
+    private Long solicitudId;
+
     @ManyToOne
     @JoinColumn(name = "ruta_id")
     private Ruta ruta;
 
+    /** Constructor vacío requerido por JPA. */
     public Parada() {
     }
 
-    public Parada(String direccion, Integer orden, String observacion) {
+    /** Constructor con campos para el registro de una parada asociada a una solicitud. */
+    public Parada(String direccion, Integer orden, String observacion, Long solicitudId) {
         this.direccion = direccion;
         this.orden = orden;
         this.observacion = observacion;
+        this.solicitudId = solicitudId;
     }
 
     public Long getId() {
@@ -65,6 +75,22 @@ public class Parada {
 
     public void setObservacion(String observacion) {
         this.observacion = observacion;
+    }
+
+    public String getEstado() {
+        return estado;
+    }
+
+    public void setEstado(String estado) {
+        this.estado = estado;
+    }
+
+    public Long getSolicitudId() {
+        return solicitudId;
+    }
+
+    public void setSolicitudId(Long solicitudId) {
+        this.solicitudId = solicitudId;
     }
 
     public Ruta getRuta() {
