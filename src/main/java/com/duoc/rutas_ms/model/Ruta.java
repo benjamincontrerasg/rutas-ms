@@ -11,9 +11,6 @@ import jakarta.persistence.Table;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Entidad que representa una hoja de ruta de recolección para un camión en RutaLimpia.
- */
 @Entity
 @Table(name = "rutas")
 public class Ruta {
@@ -36,11 +33,9 @@ public class Ruta {
     @JsonIgnore
     private List<Parada> paradas = new ArrayList<>();
 
-    /** Constructor vacío requerido por JPA. */
     public Ruta() {
     }
 
-    /** Constructor con campos para la creación de una ruta asociada a un camión. */
     public Ruta(String nombre, String sector, String diaRecoleccion, Long camionId) {
         this.nombre = nombre;
         this.sector = sector;
